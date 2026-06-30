@@ -8,6 +8,10 @@ Go bindings for [HarfBuzz](https://github.com/harfbuzz/harfbuzz)'s font subsette
 
 This library wraps a WebAssembly build of HarfBuzz transpiled to Go using [wasm2go](https://github.com/ncruces/wasm2go).
 
+> [!WARNING]
+>
+> These bindings are still experimental and are subject to change. They have not been tested extensively yet.
+
 The wasm2go blob is fully [reproducible](./src/Dockerfile) and [verified](https://github.com/pgaskin/go-hbsubset/attestations).
 
 To have working IDE integration while working on the bindings, use `bear -- make -C src distclean download all CXX=/path/to/wasi-sdk/bin/wasm32-wasip1-clang++ WASM_OPT=/path/to/binaryen/bin/wasm-opt` to download the Harfbuzz source and generate the `compile_commands.json`.
