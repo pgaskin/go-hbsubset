@@ -1,0 +1,9 @@
+.cache
+*.o
+*.out
+*.wasm
+obj
+harfbuzz
+cover
+compile_flags.txt
+compile_commands.json
