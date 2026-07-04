@@ -33,7 +33,12 @@ You can specify other options too:
 ```go
 out, err := hbsubset.Subset(font, 0, &hbsubset.Options{
     // what to keep
-    UnicodeRanges:  []hbsubset.RuneRange{{'a', 'z'}, {'A', 'Z'}},
+    UnicodeRanges: &unicode.RangeTable{
+        R16: []unicode.Range16{
+            {Lo: 'a', Hi: 'z'},
+            {Lo: 'A', Hi: 'Z'},
+        },
+    },
     Unicodes:       []rune("€£¥"),
     Glyphs:         []uint32{42},
     LayoutFeatures: []hbsubset.Tag{hbsubset.MakeTag("liga")},

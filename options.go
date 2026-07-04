@@ -3,6 +3,7 @@ package hbsubset
 import (
 	"encoding/binary"
 	"fmt"
+	"unicode"
 
 	"github.com/pgaskin/go-hbsubset/internal"
 )
@@ -91,11 +92,6 @@ func valueTag(n uint32) Tag {
 	return t
 }
 
-// RuneRange is an inclusive range of unicode codepoints [Lo, Hi].
-type RuneRange struct {
-	Lo, Hi rune
-}
-
 // AxisRange partially instances a variable font by limiting a variation axis to
 // [Min, Max] with the given Default.
 type AxisRange struct {
@@ -120,8 +116,10 @@ type Options struct {
 	// Unicodes adds unicode codepoints to retain glyphs for.
 	Unicodes []rune
 
-	// UnicodesRanges adds unicode codepoints to retain glyphs for.
-	UnicodeRanges []RuneRange
+	// UnicodesRanges adds unicode codepoints to retain glyphs for. You can make
+	// these directly (LatinOffset is ignored) or use
+	// golang.org/x/text/unicode/rangetable.
+	UnicodeRanges *unicode.RangeTable
 
 	// Glyphs are glyph indices to retain in addition to those reached from the
 	// requested unicode codepoints.
@@ -178,13 +176,40 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 		x.m.Xhb_subset_input_set_flags(int32(input), int32(uint32(cur|o.Flags)))
 	}
 
-	if len(o.Unicodes) > 0 || len(o.UnicodeRanges) > 0 {
+	if len(o.Unicodes) > 0 || o.UnicodeRanges != nil {
 		s := uint32(x.m.Xhb_subset_input_unicode_set(int32(input)))
 		for _, r := range o.Unicodes {
 			x.m.Xhb_set_add(int32(s), int32(uint32(r)))
 		}
-		for _, rr := range o.UnicodeRanges {
-			x.m.Xhb_set_add_range(int32(s), int32(uint32(rr.Lo)), int32(uint32(rr.Hi)))
+		if o.UnicodeRanges != nil {
+			for _, r := range o.UnicodeRanges.R16 {
+				if r.Lo > r.Hi || r.Stride < 1 {
+					return fmt.Errorf("invalid unicode range %d..%d..%d", r.Lo, r.Hi, r.Stride)
+				}
+				if r.Stride != 1 {
+					for i := range r.Hi + 1 - r.Lo {
+						if i%r.Stride == 0 {
+							x.m.Xhb_set_add(int32(s), int32(uint32(r.Lo+i)))
+						}
+					}
+				} else {
+					x.m.Xhb_set_add_range(int32(s), int32(uint32(r.Lo)), int32(uint32(r.Hi)))
+				}
+			}
+			for _, r := range o.UnicodeRanges.R32 {
+				if r.Lo > r.Hi || r.Stride < 1 {
+					return fmt.Errorf("invalid unicode range %d..%d..%d", r.Lo, r.Hi, r.Stride)
+				}
+				if r.Stride != 1 {
+					for i := range r.Hi + 1 - r.Lo {
+						if i%r.Stride == 0 {
+							x.m.Xhb_set_add(int32(s), int32(uint32(r.Lo+i)))
+						}
+					}
+				} else {
+					x.m.Xhb_set_add_range(int32(s), int32(uint32(r.Lo)), int32(uint32(r.Hi)))
+				}
+			}
 		}
 	}
 	if len(o.Glyphs) > 0 {
