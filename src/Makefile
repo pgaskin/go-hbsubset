@@ -71,8 +71,8 @@ download:
 $(OUTDIR)hbsubset.go: hbsubset.opt.wasm
 	CGO_ENABLED=0 $(WASM2GO) -embed -pkg internal -o $@ $<
 
-$(OUTDIR)const.go: harfbuzz/src/hb-subset.h
-	CGO_ENABLED=0 $(GO) run ./constgen.go -o $@ $<
+$(OUTDIR)const.go: harfbuzz/src/hb-subset.h harfbuzz/src/hb-ot-name.h
+	CGO_ENABLED=0 $(GO) run ./constgen.go -o $@ $^
 
 $(OUTDIR)COPYING: harfbuzz/COPYING
 	cp $^ $@

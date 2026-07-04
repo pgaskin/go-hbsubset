@@ -36,6 +36,10 @@ func run(src ...string) error {
 			return err
 		}
 
+		// this is terrible, but it's good enough (updates are manual, and
+		// constants are external and re-exported where needed)
+		buf = bytes.ReplaceAll(buf, []byte("enum\n{"), []byte("enum {"))
+
 		var (
 			inside bool
 			last   string
@@ -46,6 +50,15 @@ func run(src ...string) error {
 			// it to work on known inputs
 
 			line, _, _ := strings.Cut(strings.TrimSpace(string(line)), "//")
+
+			// also terrible... (it doesn't do multiline or mixed comments)
+			if strings.HasPrefix(line, "/*") && strings.HasSuffix(line, "*/") {
+				continue
+			}
+
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
 
 			if strings.HasPrefix(line, "#") {
 				continue

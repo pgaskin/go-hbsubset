@@ -27,6 +27,37 @@ const (
 	FlagDowngradeCFF2           = Flags(internal.HB_SUBSET_FLAGS_DOWNGRADE_CFF2)           // convert an instanced CFF2 table to CFF1 for compatibility with older renderers
 )
 
+// NameID is an OpenType name ID.
+type NameID uint32
+
+const (
+	NameCopyright            = NameID(internal.HB_OT_NAME_ID_COPYRIGHT)
+	NameFontFamily           = NameID(internal.HB_OT_NAME_ID_FONT_FAMILY)
+	NameFontSubfamily        = NameID(internal.HB_OT_NAME_ID_FONT_SUBFAMILY)
+	NameUniqueID             = NameID(internal.HB_OT_NAME_ID_UNIQUE_ID)
+	NameFullName             = NameID(internal.HB_OT_NAME_ID_FULL_NAME)
+	NameVersionString        = NameID(internal.HB_OT_NAME_ID_VERSION_STRING)
+	NamePostscriptName       = NameID(internal.HB_OT_NAME_ID_POSTSCRIPT_NAME)
+	NameTrademark            = NameID(internal.HB_OT_NAME_ID_TRADEMARK)
+	NameManufacturer         = NameID(internal.HB_OT_NAME_ID_MANUFACTURER)
+	NameDesigner             = NameID(internal.HB_OT_NAME_ID_DESIGNER)
+	NameDescription          = NameID(internal.HB_OT_NAME_ID_DESCRIPTION)
+	NameVendorURL            = NameID(internal.HB_OT_NAME_ID_VENDOR_URL)
+	NameDesignerURL          = NameID(internal.HB_OT_NAME_ID_DESIGNER_URL)
+	NameLicense              = NameID(internal.HB_OT_NAME_ID_LICENSE)
+	NameLicenseURL           = NameID(internal.HB_OT_NAME_ID_LICENSE_URL)
+	NameTypographicFamily    = NameID(internal.HB_OT_NAME_ID_TYPOGRAPHIC_FAMILY)
+	NameTypographicSubfamily = NameID(internal.HB_OT_NAME_ID_TYPOGRAPHIC_SUBFAMILY)
+	NameMacFullName          = NameID(internal.HB_OT_NAME_ID_MAC_FULL_NAME)
+	NameSampleText           = NameID(internal.HB_OT_NAME_ID_SAMPLE_TEXT)
+	NameCidFindfontName      = NameID(internal.HB_OT_NAME_ID_CID_FINDFONT_NAME)
+	NameWWSFamily            = NameID(internal.HB_OT_NAME_ID_WWS_FAMILY)
+	NameWWSSubfamily         = NameID(internal.HB_OT_NAME_ID_WWS_SUBFAMILY)
+	NameLightBackground      = NameID(internal.HB_OT_NAME_ID_LIGHT_BACKGROUND)
+	NameDarkBackground       = NameID(internal.HB_OT_NAME_ID_DARK_BACKGROUND)
+	NameVariationsPSPrefix   = NameID(internal.HB_OT_NAME_ID_VARIATIONS_PS_PREFIX)
+)
+
 // Tag is a four-byte identifier, for example, a sfnt table tag ("glyf"), a
 // layout feature tag ("liga"), or a variation axis tag ("wght").
 type Tag [4]byte
@@ -104,7 +135,7 @@ type Options struct {
 	LayoutScripts []Tag
 
 	// NameIDs are the name-table name IDs to retain.
-	NameIDs []uint32
+	NameIDs []NameID
 
 	// NameIDs are the name-table language IDs to retain.
 	NameLanguages []uint32
@@ -173,22 +204,12 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 		}
 	}
 
-	addValues := func(input uint32, which int, vals []uint32) {
-		if len(vals) == 0 {
-			return
-		}
-		s := uint32(x.m.Xhb_subset_input_set(int32(input), int32(which)))
-		for _, v := range vals {
-			x.m.Xhb_set_add(int32(s), int32(v))
-		}
-	}
-
 	addTags(input, internal.HB_SUBSET_SETS_LAYOUT_FEATURE_TAG, o.LayoutFeatures)
 	addTags(input, internal.HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG, o.LayoutScripts)
 	addTags(input, internal.HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG, o.NoSubsetTables)
 	addTags(input, internal.HB_SUBSET_SETS_DROP_TABLE_TAG, o.DropTables)
-	addValues(input, internal.HB_SUBSET_SETS_NAME_ID, o.NameIDs)
-	addValues(input, internal.HB_SUBSET_SETS_NAME_LANG_ID, o.NameLanguages)
+	addValues(x.m, input, internal.HB_SUBSET_SETS_NAME_ID, o.NameIDs)
+	addValues(x.m, input, internal.HB_SUBSET_SETS_NAME_LANG_ID, o.NameLanguages)
 
 	if len(o.GlyphMapping) > 0 {
 		m := uint32(x.m.Xhb_subset_input_old_to_new_glyph_mapping(int32(input)))
@@ -218,4 +239,14 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 		}
 	}
 	return nil
+}
+
+func addValues[T ~uint32](m *internal.Module, input uint32, which int, vals []T) {
+	if len(vals) == 0 {
+		return
+	}
+	s := uint32(m.Xhb_subset_input_set(int32(input), int32(which)))
+	for _, v := range vals {
+		m.Xhb_set_add(int32(s), int32(v))
+	}
 }
