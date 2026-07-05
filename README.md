@@ -31,23 +31,52 @@ out, err := hbsubset.Subset(font, 0, &hbsubset.Options{
 You can specify other options too:
 
 ```go
-out, err := hbsubset.Subset(font, 0, &hbsubset.Options{
-    // what to keep
-    UnicodeRanges: &unicode.RangeTable{
-        R16: []unicode.Range16{
-            {Lo: 'a', Hi: 'z'},
-            {Lo: 'A', Hi: 'Z'},
+import (
+    "github.com/pgaskin/go-gfsubsets"
+    "golang.org/x/text/unicode/rangetable"
+)
+
+out, err := hbsubset.Subset(data, 0, &hbsubset.Options{
+    UnicodeRanges: rangetable.Merge(
+        gfsubsets.Latin,
+        &unicode.RangeTable{
+            R16: []unicode.Range16{
+                {Stride: 1, Lo: '\u2002', Hi: '\u201E'}, // spaces, smart punctuation
+                {Stride: 1, Lo: '\u2022', Hi: '\u2022'}, // bullet
+                {Stride: 1, Lo: '\u2026', Hi: '\u2026'}, // ellipsis
+            },
         },
+    ),
+    PinAllAxesToDefault: true,
+    AxisRanges: map[hbsubset.Tag]hbsubset.AxisRange{
+        hbsubset.MakeTag("wght"): {Min: 100, Max: 900, Default: 400},
     },
-    Unicodes:       []rune("€£¥"),
-    Glyphs:         []uint32{42},
-    LayoutFeatures: []hbsubset.Tag{hbsubset.MakeTag("liga")},
-
-    // what to drop / instance
-    DropTables: []hbsubset.Tag{hbsubset.MakeTag("DSIG")},
-    PinAxes:    map[hbsubset.Tag]float32{hbsubset.MakeTag("wght"): 600},
-
-    Flags: hbsubset.FlagNoHinting | hbsubset.FlagDesubroutinize,
+    LayoutFeatures: []hbsubset.Tag{
+        hbsubset.MakeTag("kern"),
+        hbsubset.MakeTag("mkmk"),
+        hbsubset.MakeTag("size"),
+        hbsubset.MakeTag("liga"),
+    },
+    NameIDs: []hbsubset.NameID{
+        hbsubset.NameUniqueID,
+        hbsubset.NameCopyright,
+        hbsubset.NameFontFamily,
+        hbsubset.NameFontSubfamily,
+        hbsubset.NameTypographicFamily,
+        hbsubset.NameTypographicSubfamily,
+        hbsubset.NameFullName,
+        hbsubset.NameMacFullName,
+        hbsubset.NamePostscriptName,
+        hbsubset.NameManufacturer,
+        hbsubset.NameDescription,
+        hbsubset.NameVariationsPSPrefix,
+    },
+    LayoutScripts: []hbsubset.Tag{
+        hbsubset.MakeTag("latn"), // latin
+    },
+    NameLanguages: []uint32{
+        1033, // english
+    },
 })
 ```
 
