@@ -100,28 +100,8 @@ type AxisRange struct {
 
 // Options is the configuration for a subset plan.
 //
-// The zero value retains only the minimal structure of the font. Use
-// [Options.KeepEverything] to start from a full font and remove from it
-// instead.
+// The zero value retains only the minimal structure of the font.
 type Options struct {
-	// KeepEverything starts from a configuration that retains the entire font
-	// rather than adding to an empty one. Note that it implicitly enables
-	// several [Flags].
-	//
-	// If set, axis pinning works as usual, except that the font starts with the
-	// full range of all axes rather than no axes.
-	//
-	// If set, all unicodes are retained by default unless
-	// len([Options.Unicodes]) is non-zero or [Options.UnicodeRanges] is
-	// non-nil, in which case the unicodes to retained are replaced with that.
-	// To subtract unicodes from the full set instead, set
-	// [Options.ExcludeUnicodes].
-	//
-	// If set, all glyphs are retained by default unless len([Options.Glyphs])
-	// is non-zero, in which case the glyphs to retained are replaced with that.
-	// To subtract glyphs from the full set instead, set [Options.ExcludeGlyphs].
-	KeepEverything bool
-
 	// ExcludeUnicodes makes [Options.Unicodes] and [Options.UnicodeRanges]
 	// subtract from the full set instead of adding to it.
 	ExcludeUnicodes bool
@@ -130,8 +110,7 @@ type Options struct {
 	// of adding to it.
 	ExcludeGlyphs bool
 
-	// Flags is a bitmask of boolean options. It is OR'd with any flags implied
-	// by [Options.KeepEverything].
+	// Flags is a bitmask of boolean options.
 	Flags Flags
 
 	// Unicodes adds unicode codepoints to retain glyphs for.
@@ -189,9 +168,8 @@ type Options struct {
 }
 
 func (o *Options) apply(x *instance, input, face uint32) error {
-	if o.KeepEverything {
-		x.m.Xhb_subset_input_keep_everything(int32(input))
-	}
+	// TODO: figure out the set inversion semantics for KeepEverything
+
 	if o.Flags != 0 {
 		cur := Flags(uint32(x.m.Xhb_subset_input_get_flags(int32(input))))
 		x.m.Xhb_subset_input_set_flags(int32(input), int32(uint32(cur|o.Flags)))
@@ -199,10 +177,6 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 
 	if len(o.Unicodes) > 0 || o.UnicodeRanges != nil {
 		s := uint32(x.m.Xhb_subset_input_unicode_set(int32(input)))
-		x.m.Xhb_set_clear(int32(s)) // if KeepEverything was used, the set would already have everything set, so clear it
-		if o.ExcludeGlyphs {
-			x.m.Xhb_set_invert(int32(s))
-		}
 		for _, r := range o.Unicodes {
 			x.m.Xhb_set_add(int32(s), int32(uint32(r)))
 		}
@@ -239,10 +213,6 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 	}
 	if len(o.Glyphs) > 0 {
 		s := uint32(x.m.Xhb_subset_input_glyph_set(int32(input)))
-		x.m.Xhb_set_clear(int32(s)) // if KeepEverything was used, the set would already have everything set, so clear it
-		if o.ExcludeGlyphs {
-			x.m.Xhb_set_invert(int32(s))
-		}
 		for _, g := range o.Glyphs {
 			x.m.Xhb_set_add(int32(s), int32(g))
 		}
@@ -258,6 +228,9 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 		}
 	}
 
+	// TODO: exclude option for these sets? might be better to refactor the
+	// options to be functional or a builder, or refactor the set-related
+	// options to be a generic Set[T] wrapper which handles add/subtract...
 	addTags(input, internal.HB_SUBSET_SETS_LAYOUT_FEATURE_TAG, o.LayoutFeatures)
 	addTags(input, internal.HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG, o.LayoutScripts)
 	addTags(input, internal.HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG, o.NoSubsetTables)

@@ -51,15 +51,6 @@ out, err := hbsubset.Subset(font, 0, &hbsubset.Options{
 })
 ```
 
-You can specify stuff to remove instead of stuff to keep:
-
-```go
-out, err := hbsubset.Subset(font, 0, &hbsubset.Options{
-    KeepEverything: true,
-    DropTables:     []hbsubset.Tag{hbsubset.MakeTag("DSIG")},
-})
-```
-
 You can reuse a font for multiple subsets (this also lets you access the font metadata):
 
 ```go
