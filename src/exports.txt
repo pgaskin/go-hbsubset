@@ -41,6 +41,8 @@ hb_subset_input_set_axis_range
 
 hb_set_add
 hb_set_add_range
+hb_set_clear
+hb_set_invert
 
 hb_map_set
 hb_map_get_population

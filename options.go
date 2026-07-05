@@ -104,10 +104,31 @@ type AxisRange struct {
 // [Options.KeepEverything] to start from a full font and remove from it
 // instead.
 type Options struct {
-	// KeepEverything starts from a configuration that retains the entire font,
-	// so that the other fields remove or override from a full font rather than
-	// adding to an empty one. Note that it implicitly enables several [Flags].
+	// KeepEverything starts from a configuration that retains the entire font
+	// rather than adding to an empty one. Note that it implicitly enables
+	// several [Flags].
+	//
+	// If set, axis pinning works as usual, except that the font starts with the
+	// full range of all axes rather than no axes.
+	//
+	// If set, all unicodes are retained by default unless
+	// len([Options.Unicodes]) is non-zero or [Options.UnicodeRanges] is
+	// non-nil, in which case the unicodes to retained are replaced with that.
+	// To subtract unicodes from the full set instead, set
+	// [Options.ExcludeUnicodes].
+	//
+	// If set, all glyphs are retained by default unless len([Options.Glyphs])
+	// is non-zero, in which case the glyphs to retained are replaced with that.
+	// To subtract glyphs from the full set instead, set [Options.ExcludeGlyphs].
 	KeepEverything bool
+
+	// ExcludeUnicodes makes [Options.Unicodes] and [Options.UnicodeRanges]
+	// subtract from the full set instead of adding to it.
+	ExcludeUnicodes bool
+
+	// ExcludeGlyphs makes [Options.Glyphs] subtract from the full set instead
+	// of adding to it.
+	ExcludeGlyphs bool
 
 	// Flags is a bitmask of boolean options. It is OR'd with any flags implied
 	// by [Options.KeepEverything].
@@ -178,6 +199,10 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 
 	if len(o.Unicodes) > 0 || o.UnicodeRanges != nil {
 		s := uint32(x.m.Xhb_subset_input_unicode_set(int32(input)))
+		x.m.Xhb_set_clear(int32(s)) // if KeepEverything was used, the set would already have everything set, so clear it
+		if o.ExcludeGlyphs {
+			x.m.Xhb_set_invert(int32(s))
+		}
 		for _, r := range o.Unicodes {
 			x.m.Xhb_set_add(int32(s), int32(uint32(r)))
 		}
@@ -214,6 +239,10 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 	}
 	if len(o.Glyphs) > 0 {
 		s := uint32(x.m.Xhb_subset_input_glyph_set(int32(input)))
+		x.m.Xhb_set_clear(int32(s)) // if KeepEverything was used, the set would already have everything set, so clear it
+		if o.ExcludeGlyphs {
+			x.m.Xhb_set_invert(int32(s))
+		}
 		for _, g := range o.Glyphs {
 			x.m.Xhb_set_add(int32(s), int32(g))
 		}
