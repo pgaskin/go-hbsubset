@@ -108,3 +108,5 @@ for old, new := range m.Glyphs() {
     // ...
 }
 ```
+
+There are also some helpers to get relevant info (names, axes, glyph mappings, etc) from the font before subsetting (see the docs and [faceinfo.go](./faceinfo.go)).

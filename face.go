@@ -55,20 +55,6 @@ func SubsetWithMapping(font []byte, index int, opts *Options) ([]byte, Mapping, 
 	return face.SubsetWithMapping(opts)
 }
 
-// FaceCount returns the number of faces in a font collection. If the font is
-// not a collection, the count will be 1. If the data is not a font, the count
-// will be 0. An error will only be returned if the wasm memory allocation
-// fails.
-func FaceCount(data []byte) (int, error) {
-	x := newInstance()
-	p, err := x.copy(data)
-	if err != nil {
-		return 0, err
-	}
-	defer x.free(p)
-	return int(x.m.Xhbw_face_count(int32(p), int32(uint32(len(data))))), nil
-}
-
 // Preprocess prepares the font to optimize repeated subset calls.
 func (f *Face) Preprocess() error {
 	f.mu.Lock()
@@ -94,61 +80,6 @@ func (f *Face) SubsetWithMapping(opts *Options) ([]byte, Mapping, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return subsetPlan(f.x, f.face, opts)
-}
-
-// GlyphCount returns the number of glyphs in the face.
-func (f *Face) GlyphCount() int {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	return int(uint32(f.x.m.Xhb_face_get_glyph_count(int32(f.face))))
-}
-
-// UnitsPerEm returns the design units per em of the face.
-func (f *Face) UnitsPerEm() int {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	return int(uint32(f.x.m.Xhb_face_get_upem(int32(f.face))))
-}
-
-// Index returns the face's index within its font collection.
-func (f *Face) Index() int {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	return int(uint32(f.x.m.Xhb_face_get_index(int32(f.face))))
-}
-
-// TableTags returns the sfnt table tags present in the face.
-func (f *Face) TableTags() []Tag {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	const batch = 64
-	p, err := f.x.alloc(batch * 4)
-	if err != nil {
-		return nil
-	}
-	defer f.x.free(p)
-	var tags []Tag
-	for start := uint32(0); ; {
-		total := uint32(f.x.m.Xhbw_face_table_tags(int32(f.face), int32(start), int32(p), batch))
-		n := min(total-start, batch)
-		for i := range n {
-			tags = append(tags, valueTag(f.x.u32(p+i*4)))
-		}
-		start += n
-		if start >= total || n == 0 {
-			break
-		}
-	}
-	return tags
-}
-
-// Table returns the raw bytes of a single sfnt table, or nil if the table does
-// not exist.
-func (f *Face) Table(tag Tag) ([]byte, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	ptr, n, handle := f.x.m.Xhbw_face_table(int32(f.face), int32(tagValue(tag)))
-	return f.x.blob(ptr, n, handle)
 }
 
 func subset(x *instance, face uint32, opts *Options) ([]byte, error) {

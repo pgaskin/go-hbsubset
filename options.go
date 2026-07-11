@@ -135,7 +135,8 @@ type Options struct {
 	// NameIDs are the name-table name IDs to retain.
 	NameIDs []NameID
 
-	// NameIDs are the name-table language IDs to retain.
+	// NameLanguages are the raw name-table language IDs to retain (see
+	// [NameID.LanguageID]).
 	NameLanguages []uint32
 
 	// NoSubsetTables are table tags to pass through unchanged rather than

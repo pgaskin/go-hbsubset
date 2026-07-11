@@ -73,6 +73,7 @@ func fetch(repo, commit, dest string) error {
 		if _, rest, ok := strings.Cut(rel, "/"); ok {
 			rel = rest // remove top-level dir
 		}
+		rel = strings.TrimSuffix(rel, "/") // os.Root.MkdirAll fails on trailing slashes before go1.27rc2
 		if rel == "" {
 			continue
 		}

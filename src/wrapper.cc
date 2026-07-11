@@ -59,8 +59,7 @@ extern "C" struct hbw_bytes hbw_face_table(hb_face_t *face, hb_tag_t tag) {
 __attribute__((visibility("default")))
 extern "C" unsigned int hbw_face_table_tags(hb_face_t *face, unsigned int start, hb_tag_t *out, unsigned int cap) {
 	unsigned int count = cap;
-	hb_face_get_table_tags(face, start, &count, out);
-	return count;
+	return hb_face_get_table_tags(face, start, &count, out);
 }
 
 __attribute__((visibility("default")))
@@ -71,6 +70,17 @@ extern "C" unsigned int hbw_map_entries(const hb_map_t *map, hb_codepoint_t *key
 	while (n < cap && hb_map_next(map, &idx, &key, &val)) {
 		keys[n] = key;
 		vals[n] = val;
+		n++;
+	}
+	return n;
+}
+
+__attribute__((visibility("default")))
+extern "C" unsigned int hbw_set_values(const hb_set_t *set, hb_codepoint_t *out, unsigned int cap) {
+	hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+	unsigned int n = 0;
+	while (n < cap && hb_set_next(set, &cp)) {
+		out[n] = cp;
 		n++;
 	}
 	return n;

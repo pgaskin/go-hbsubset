@@ -68,6 +68,35 @@ func (x *instance) u32(ptr uint32) uint32 {
 	return uint32(mem[ptr]) | uint32(mem[ptr+1])<<8 | uint32(mem[ptr+2])<<16 | uint32(mem[ptr+3])<<24
 }
 
+func (x *instance) u16(ptr uint32) uint16 {
+	mem := *x.m.Xmemory().Slice()
+	return uint16(mem[ptr]) | uint16(mem[ptr+1])<<8
+}
+
+func (x *instance) putU32(ptr, v uint32) {
+	mem := *x.m.Xmemory().Slice()
+	mem[ptr] = byte(v)
+	mem[ptr+1] = byte(v >> 8)
+	mem[ptr+2] = byte(v >> 16)
+	mem[ptr+3] = byte(v >> 24)
+}
+
+func (x *instance) f32(ptr uint32) float32 {
+	return math.Float32frombits(x.u32(ptr))
+}
+
+func (x *instance) cstr(ptr uint32) string {
+	if ptr == 0 {
+		return ""
+	}
+	mem := *x.m.Xmemory().Slice()
+	end := ptr
+	for end < uint32(len(mem)) && mem[end] != 0 {
+		end++
+	}
+	return string(mem[ptr:end])
+}
+
 func (x *instance) blob(ptr, n, handle int32) ([]byte, error) {
 	if handle == 0 {
 		return nil, errors.New("null hb_blob_t")
