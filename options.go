@@ -248,22 +248,22 @@ func (o *Options) apply(x *instance, input, face uint32) error {
 
 	if o.PinAllAxesToDefault {
 		if x.m.Xhb_subset_input_pin_all_axes_to_default(int32(input), int32(face)) == 0 {
-			return fmt.Errorf("hbsubset: failed to pin all axes to default")
+			return fmt.Errorf("failed to pin all axes to default")
 		}
 	}
 	for _, tag := range o.PinAxesToDefault {
 		if x.m.Xhb_subset_input_pin_axis_to_default(int32(input), int32(face), int32(tagValue(tag))) == 0 {
-			return fmt.Errorf("hbsubset: failed to pin axis %q to default", tag)
+			return fmt.Errorf("failed to pin axis %q to default", tag)
 		}
 	}
 	for tag, v := range o.PinAxes {
 		if x.m.Xhb_subset_input_pin_axis_location(int32(input), int32(face), int32(tagValue(tag)), v) == 0 {
-			return fmt.Errorf("hbsubset: failed to pin axis %q", tag)
+			return fmt.Errorf("failed to pin axis %q", tag)
 		}
 	}
 	for tag, ar := range o.AxisRanges {
 		if x.m.Xhb_subset_input_set_axis_range(int32(input), int32(face), int32(tagValue(tag)), ar.Min, ar.Max, ar.Default) == 0 {
-			return fmt.Errorf("hbsubset: failed to set range for axis %q", tag)
+			return fmt.Errorf("failed to set range for axis %q", tag)
 		}
 	}
 	return nil

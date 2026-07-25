@@ -1,6 +1,7 @@
 package hbsubset
 
 import (
+	"encoding/binary"
 	"errors"
 	"math"
 	"slices"
@@ -64,21 +65,15 @@ func (x *instance) mem(ptr, n uint32) ([]byte, error) {
 }
 
 func (x *instance) u32(ptr uint32) uint32 {
-	mem := *x.m.Xmemory().Slice()
-	return uint32(mem[ptr]) | uint32(mem[ptr+1])<<8 | uint32(mem[ptr+2])<<16 | uint32(mem[ptr+3])<<24
+	return binary.LittleEndian.Uint32((*x.m.Xmemory().Slice())[ptr:])
 }
 
 func (x *instance) u16(ptr uint32) uint16 {
-	mem := *x.m.Xmemory().Slice()
-	return uint16(mem[ptr]) | uint16(mem[ptr+1])<<8
+	return binary.LittleEndian.Uint16((*x.m.Xmemory().Slice())[ptr:])
 }
 
 func (x *instance) putU32(ptr, v uint32) {
-	mem := *x.m.Xmemory().Slice()
-	mem[ptr] = byte(v)
-	mem[ptr+1] = byte(v >> 8)
-	mem[ptr+2] = byte(v >> 16)
-	mem[ptr+3] = byte(v >> 24)
+	binary.LittleEndian.PutUint32((*x.m.Xmemory().Slice())[ptr:], v)
 }
 
 func (x *instance) f32(ptr uint32) float32 {
