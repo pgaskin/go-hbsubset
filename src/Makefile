@@ -1,6 +1,6 @@
 MAKEFLAGS += -r
 
-WASM2GO_VERSION  := 7cf5bf3860ec207b09027f2d568e08ff143f39d3
+WASM2GO_VERSION  := 3acef445bce9927a8e9a9534533ca0a025c94784
 HARFBUZZ_VERSION := $(shell cut -c1-10 harfbuzz/COMMIT)
 
 CXX      := wasm32-wasip1-clang++
