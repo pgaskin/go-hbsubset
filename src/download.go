@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	mustFetch("harfbuzz/harfbuzz", "56feae4035bdd48f62ba2b8d8c16232d4d89b3a4", "harfbuzz")
+	mustFetch("harfbuzz/harfbuzz", "35f656a1a2bab548ea7f54a6dd3fba2b09680d14", "harfbuzz")
 }
 
 func mustFetch(repo, commit, dest string) {

@@ -25,7 +25,8 @@ const (
 	FlagNoLayoutClosure         = Flags(internal.HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE)        // skip glyph closure over GSUB layout substitution rules
 	FlagOptimizeIUPDeltas       = Flags(internal.HB_SUBSET_FLAGS_OPTIMIZE_IUP_DELTAS)      // perform IUP delta optimization on remaining gvar deltas
 	FlagNoBidiClosure           = Flags(internal.HB_SUBSET_FLAGS_NO_BIDI_CLOSURE)          // do not pull mirrored versions of input codepoints into the subset
-	FlagDowngradeCFF2           = Flags(internal.HB_SUBSET_FLAGS_DOWNGRADE_CFF2)           // convert an instanced CFF2 table to CFF1 for compatibility with older renderers
+	FlagDowngradeCFF2           = Flags(internal.HB_SUBSET_FLAGS_DOWNGRADE_CFF2)           // convert a fully instanced CFF2 table to CFF1 for compatibility with older renderers
+	FlagCFFIdentityCharset      = Flags(internal.HB_SUBSET_FLAGS_CFF_IDENTITY_CHARSET)     // use identity CIDs (CID = new GID) in the charset of a subsetted CID-keyed CFF font
 )
 
 // NameID is an OpenType name ID.
