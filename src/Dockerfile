@@ -1,10 +1,10 @@
 FROM golang:1.26-trixie AS base
 
-ARG WASI_SDK_VERSION=33
-ARG BINARYEN_VERSION=129
+ARG WASI_SDK_VERSION=34
+ARG BINARYEN_VERSION=133
 
-ARG WASI_SDK_CHECKSUM=sha256:0ba8b5bfaeb2adf3f29bab5841d76cf5318ab8e1642ea195f88baba1abd47bce
-ARG BINARYEN_CHECKSUM=sha256:50b9fa62b9abea752da92ec57e0c555fee578760cd237c40107957715d2976ba
+ARG WASI_SDK_CHECKSUM=sha256:b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
+ARG BINARYEN_CHECKSUM=sha256:2dc9c7813f5375db93d96ead4b78222fcc3e2677bbb832297af4797782a37489
 
 ARG WASI_SDK_URL=https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_VERSION}.0-x86_64-linux.tar.gz
 ARG BINARYEN_URL=https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz
